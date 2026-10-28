@@ -1,0 +1,101 @@
+### Cadastro → 201 (role USER)
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{"name": "Carlos Teste", "email": "carlos@fit.com", "password": "carlos123"}
+
+### Login do aluno → 200 {token, expiresIn}
+# @name loginAna
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{"email": "ana@fit.com", "password": "ana123"}
+
+> {% client.global.set("anaToken", response.body.token); %}
+
+### Login do admin
+# @name loginAdmin
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{"email": "admin@fit.com", "password": "admin123"}
+
+> {% client.global.set("adminToken", response.body.token); %}
+
+### Listar (página 0, 10 aulas, ordenadas por startsAt)
+GET http://localhost:8080/classes
+
+### Segunda página, 5 por página
+GET http://localhost:8080/classes?page=1&size=5
+
+### Query by Example
+GET http://localhost:8080/classes/example?modality=YOGA&level=BEGINNER&instructor=carla mendes
+
+### Specification: título, modalidade, faixa de horário e só com vaga
+GET http://localhost:8080/classes/search?title=yoga&modality=YOGA&availableOnly=true&startsAfter=2026-01-01T00:00:00
+
+### Uma aula (como aluno: aparece o link enroll quando há vaga)
+GET http://localhost:8080/classes/1
+Authorization: Bearer {{anaToken}}
+
+### Aula inexistente → 404
+GET http://localhost:8080/classes/999
+
+### Criar aula (ADMIN) → 201 + Location
+POST http://localhost:8080/classes
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Funcional ao ar livre",
+  "modality": "FUNCTIONAL",
+  "level": "INTERMEDIATE",
+  "instructor": "Rafael Souza",
+  "startsAt": "2026-12-01T10:00:00",
+  "durationMinutes": 45,
+  "capacity": 15
+}
+
+### Criar como aluno → 403 {"error": "..."}
+POST http://localhost:8080/classes
+Authorization: Bearer {{anaToken}}
+Content-Type: application/json
+
+{"title": "Nao pode", "modality": "YOGA", "level": "BEGINNER", "instructor": "X", "startsAt": "2026-12-01T10:00:00", "durationMinutes": 45, "capacity": 15}
+
+### Criar sem token → 401 {"error": "..."}
+POST http://localhost:8080/classes
+Content-Type: application/json
+
+{}
+
+### Atualizar (ADMIN) → 200
+PUT http://localhost:8080/classes/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Yoga reformulado",
+  "modality": "YOGA",
+  "level": "BEGINNER",
+  "instructor": "Carla Mendes",
+  "startsAt": "2026-12-02T07:00:00",
+  "durationMinutes": 60,
+  "capacity": 30
+}
+
+### Excluir (ADMIN) → 204
+DELETE http://localhost:8080/classes/2
+Authorization: Bearer {{adminToken}}
+
+### Inscrever-se → 201 (409 se lotada ou já inscrito)
+POST http://localhost:8080/classes/3/enrollments
+Authorization: Bearer {{anaToken}}
+
+### Minhas inscrições (paginado)
+GET http://localhost:8080/enrollments/me
+Authorization: Bearer {{anaToken}}
+
+### Cancelar inscrição → 204 (dono ou ADMIN; 403 se for de outro aluno)
+DELETE http://localhost:8080/enrollments/1
+Authorization: Bearer {{anaToken}}
