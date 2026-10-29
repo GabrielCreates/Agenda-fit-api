@@ -17,8 +17,8 @@ Java 17, Spring Boot, Spring Data JPA, Spring Security (OAuth2 Resource Server +
 Não é necessária nenhuma configuração extra.
 
 ```bash
-git clone LINK_DO_REPOSITORIO
-cd PASTA_DO_REPOSITORIO
+git clone https://github.com/GabrielCreates/Agenda-fit-api.git
+cd Agenda-fit-api
 mvn spring-boot:run
 ```
 
